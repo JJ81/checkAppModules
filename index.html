@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+</head>
+
+<body>
+	<!-- usage Example -->
+<script>
+			/** 
+				Check app and download modular 
+			*/
+			function checkAppOnSub(targetElement, getSeriesId) {
+				if(targetElement === 'undefined') 
+					return false;
+				
+				var obj = appCheckModular.initiate();
+				obj.init();
+				var timer;
+				var duration = 500;
+				
+				var 
+				referrer = "",
+				isMobile = $(".isMobile").val(),
+				inkatalk = $(".inkatalk").val();
+				
+				if($.cookie('referrer') == 'undefined' || $.cookie('referrer') == null ){ 
+					if(inkatalk == "0"){
+						if(isMobile == "true"){
+							referrer = "&utm_source=mobileWeb";
+						}else if(isMobile == "false"){
+							referrer = "&utm_source=pcWeb";
+						}
+					}else if(inkatalk == "1"){
+						referrer = "&utm_source=kakaotalk";
+					}	
+				}else{
+					referrer = "&referrer=" + $.cookie('referrer');
+				}
+	
+				obj.setMarket({
+					Android : "market://details?id=com.kakao.page" + referrer,
+					iOS : "https://itunes.apple.com/kr/app/kakaopeiji/id616643813"
+				});
+				
+				targetElement.on("click", function () {
+					var deviceType = obj.getDeviceInfo();
+
+					obj.setAppScheme({Main : "kakaopage://main"}, "com.kakao.page");
+	
+					if(deviceType === 'PC'){
+						piwik.logger("try_install_app", "PC", 3, "page");
+						window.open("http://www.kakao.com/services/10");
+					}else if(deviceType === 'iOS') {
+						if(obj.getBrowserInfo() != 'Chrome') {	
+							timer = setTimeout(function () {
+								piwik.logger("try_install_app", "iOS", 1, "page");
+								obj.callMarket("iOS");
+							}, duration);
+						}
+						obj.callAppScheme("Main");
+			
+						window.addEventListener("pagehide", function () {
+							clearTimeout(timer);
+			                window.removeEventListener('pagehide', arguments.callee); 
+						});
+					} // iOS
+					
+					else if(deviceType === 'Android') {
+						if(obj.getBrowserInfo() != 'Chrome') {
+							timer = setTimeout(function () {
+								piwik.logger("try_install_app", "Android", 2, "page");
+								/* obj.callMarket("Android"); */
+							}, duration);
+						}
+						
+						obj.callAppScheme("Main");
+			
+						window.addEventListener("pagehide", function () {
+							clearTimeout(timer);
+			                window.removeEventListener('pagehide', arguments.callee);
+						});	
+					} // Android
+	
+					return false;
+				}); // click event
+			}
+	</script>
+</body>
+</html>
